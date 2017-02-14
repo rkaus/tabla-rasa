@@ -1,8 +1,10 @@
+import os
 import re
 import requests
 from bs4 import BeautifulSoup
 from more_itertools import unique_everseen
 from string import punctuation
+import pandas as pd
 
 def chandra_bols():
     r = requests.get('http://www.chandrakantha.com/tablasite/comp/16/chakradar1.html')
@@ -55,7 +57,7 @@ def musicking():
         else:
             page = requests.get(url)
             soup = BeautifulSoup(page.content,'lxml')
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             ess = soup.findAll('td',{'width':'3%'})
             for stroke in ess:
                 "".join(stroke.text)
@@ -172,8 +174,44 @@ def austin_bols():
         soup = BeautifulSoup(a, 'lxml')
     return soup
 
+
+def upf_bols():
+    df = pd.DataFrame()
+    tdf = None
+    path = '/home/rkaus/galvanize/Project/tabla/upf_data/score'
+    for f in os.listdir(path):
+        p = path + '/{}'.format(f)
+        tdf = pd.read_table(p)
+        df = df.append(tdf.T)
+
+    col_names = {0:'gharana',1:'number',2:'jati',3:'type',4:'taal',5:'composer'}
+    df = df.rename(index=str, columns=col_names)
+
+    df.gharana = [x[8:] for x in df.gharana]
+    df.number = [x[12:] for x in df.number]
+    df.jati = [x[5:] for x in df.jati]
+    df.type = [x[5:] for x in df.type]
+    df.taal = [x[5:] for x in df.taal]
+    df.composer = [x[9:] for x in df.composer]
+    # df[0] = [x[8:] for x in df[0]]
+    import pdb; pdb.set_trace()
+    df['comp_string'] = df.ix[:,9:].astype(str).sum(axis=1)
+    # df['']
+    for i in range(len(df)):
+        df.ix[i].comp_string = df.ix[i].comp_string.replace(',',' ')
+
+
+    return df
+
+def beat_dict():
+    bd = pd.read_excel('beat_dict.xlsx')
+    return bd
+
+
 if __name__ == '__main__':
-    soup, composition, details, about = tablapedia()
-    links, bs, urls = musicking()
-    pre, summary, comments = chandra_bols()
-    ab = austin_bols()
+    # soup, composition, details, about = tablapedia()
+    # links, bs, urls = musicking()
+    # pre, summary, comments = chandra_bols()
+    # ab = austin_bols()
+    df = upf_bols()
+    bd = beat_dict()
