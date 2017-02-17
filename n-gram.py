@@ -1,1 +1,0 @@
-class ngram(Object):
